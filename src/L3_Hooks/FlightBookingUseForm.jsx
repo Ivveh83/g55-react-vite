@@ -8,15 +8,21 @@ import { useForm } from "react-hook-form";
 const FlightBookingUseForm = () => {
   const [results, setResults] = useState([]);
   const [reload, setReload] = useState(false);
-  
+
+  // useForm returnerar ett objekt som innehåller ett state och två funktioner.
+  //Funktionen register() uppdaterar objektet formState med nycklar och värden, funktionen handleSubmit samlar in värdena från formuläret och validerar dem 
+  // mot formState. Errors innehåller valideringsfel om några fält inte uppfyller kraven, och det uppdateras dynamiskt vid validering, om något fält bryter mot
+  // reglerna så registreras det i errors. 
+  // Det är en lokal variabel, skapad genom destrukturering, dvs. formState: { errors }, och som finns tillgänglig i komponenten FlightBookingUseForm.
+  // Hade vi inte använt destrukturering så hade vi behövt skriva useForm().formState.errors för att komma åt errors.
   const { register, handleSubmit, formState: { errors } } = useForm({from: "", to: "", date: ""});
 
   useEffect(() => {
     const cheapestFlights = searchFlights().slice(0, 3);
     setResults(cheapestFlights);
-  }, [reload]);
+  }, [reload]); //Om state för reload ändras från truthy till falsy eller tvärtom, så kommer useEffect att anropas och köra om funktionerna inuti den.
 
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     console.log(data);
     const filteredFlights = searchFlights({from: data.from, to: data.to, date: data.date});
     setResults(filteredFlights);
@@ -32,7 +38,7 @@ const FlightBookingUseForm = () => {
         <div className="card-body">
           <div className="row g-2 g-md-3 align-items-end">
             <div className="col-12 col-md-3">
-              <small className="text-danger">{errors.from && errors.from.message}</small>
+              <small className="text-danger">{errors.from && errors.from.message}&nbsp;</small>
               <div className="input-group input-group-lg">
                 <span className="input-group-text">From</span>
                 <input className="form-control" placeholder="e.g., ARN" 
@@ -42,7 +48,7 @@ const FlightBookingUseForm = () => {
             </div>
 
             <div className="col-12 col-md-3">
-              <small className="text-danger">{errors.to && errors.to.message}</small>
+              <small className="text-danger">{errors.to && errors.to.message}&nbsp;</small>
               <div className="input-group input-group-lg">
                 <span className="input-group-text">To</span>
                 <input className="form-control" placeholder="e.g., LHR" 
@@ -56,6 +62,7 @@ const FlightBookingUseForm = () => {
               <div className="input-group input-group-lg">
                 <span className="input-group-text">📅</span>
                 <input type="date" className="form-control" 
+                {...register("date", {required: false})}
                  />
               </div>
             </div>
@@ -74,7 +81,10 @@ const FlightBookingUseForm = () => {
         <div className="d-flex align-items-center gap-2">
           <span className="badge rounded-pill text-bg-primary">results {results.length}</span>
 
-          <button className="btn btn-outline-primary btn-sm" onClick={()=> setReload(!reload)}>
+          <button className="btn btn-outline-primary btn-sm" onClick={()=> setReload(!reload)}> {/* "!boolean" är en smart grej i jsx,
+                                                                                                 som ändrar state till det motsatta, dvs om state är false
+                                                                                                  så blir det true och vice versa. 
+                                                                                                  En s.k. boolean-flagga. Den här triggar igång useEffect*/}
             Show Best Deals
           </button>
         </div>
@@ -105,7 +115,7 @@ const FlightBookingUseForm = () => {
       ) : (
         <div className="row g-3">
           {results.map((f) => (
-            <div className="col-12">
+            <div key={f.id} className="col-12">
               <div className="card shadow-sm border-0">
                 <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                   <div className="d-flex align-items-center gap-3">
